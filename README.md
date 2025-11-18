@@ -12,8 +12,8 @@ Esta es una aplicación web simple construida con Flask para gestionar una colec
 1.  **Clona el repositorio:**
 
     ```bash
-    git clone <URL_DEL_REPOSITORIO>
-    cd <NOMBRE_DEL_DIRECTORIO>
+    git clone https://github.com/berryrreb/flaskapp.git
+    cd flaskapp
     ```
 
 2.  **Crea y activa un entorno virtual:**
