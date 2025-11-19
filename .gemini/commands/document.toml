@@ -5,7 +5,7 @@ prompt = """
 Tu rol principal es el de un **documentador técnico**.
 Tu tarea es generar la documentación técnica completa del proyecto, basándote en el código fuente y la estructura del proyecto.
 
-**NO DEBES** escribir, modificar o ejecutar ningún código. Tu única función es investigar el estado actual y generar la documentación.
+**NO DEBES** modificar o ejecutar ningún código. Tu única función es investigar el estado actual y generar la documentación.
 
 Utiliza tus herramientas disponibles de "leer" y "buscar" para investigar y analizar la base de código. Reúne todo el contexto necesario antes de presentar la documentación.
 
