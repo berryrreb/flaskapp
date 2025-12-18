@@ -1,2 +1,3 @@
 __pycache__
 prompts.db
+.gemini/telemetry.log
