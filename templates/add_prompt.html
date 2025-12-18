@@ -23,18 +23,29 @@
         <div class="sidebar-icon">
             <i class="fas fa-chart-bar"></i>
         </div>
+        <div style="margin-top: auto;">
+            <div class="sidebar-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+        </div>
     </aside>
 
     <main class="main-wrapper">
         <header>
             <a href="{{ url_for('index') }}" class="logo">Flask<span>Prompt AI</span></a>
+            <form action="{{ url_for('index') }}" method="get" class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" placeholder="Search prompts..." value="{{ search_query }}">
+            </form>
             <div class="header-actions">
-                <button id="theme-toggle" title="Toggle Light/Dark Mode">
+                <button id="theme-toggle" class="header-icon" title="Toggle Light/Dark Mode">
                     <i class="fas fa-moon"></i>
                 </button>
                 <div class="user-profile">
-                    <i class="fas fa-bell sidebar-icon" style="margin-bottom: 0; margin-right: 10px;"></i>
-                    <i class="fas fa-user-circle" style="font-size: 2rem; color: var(--text-muted);"></i>
+                    <div class="header-icon" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <i class="fas fa-user-circle profile-avatar"></i>
                 </div>
             </div>
         </header>
