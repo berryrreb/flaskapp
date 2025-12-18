@@ -19,10 +19,15 @@ def init_db():
 
 @app.route('/')
 def index():
+    search_query = request.args.get('q', '')
     conn = get_db_connection()
-    prompts = conn.execute('SELECT * FROM prompts').fetchall()
+    if search_query:
+        query = 'SELECT * FROM prompts WHERE title LIKE ? OR category LIKE ?'
+        prompts = conn.execute(query, (f'%{search_query}%', f'%{search_query}%')).fetchall()
+    else:
+        prompts = conn.execute('SELECT * FROM prompts').fetchall()
     conn.close()
-    return render_template('index.html', prompts=prompts)
+    return render_template('index.html', prompts=prompts, search_query=search_query)
 
 @app.route('/add', methods=('GET', 'POST'))
 def add_prompt():
