@@ -1,0 +1,14 @@
+# .gemini/commands/audit.toml
+description = "Realiza una auditoría rápida de seguridad de las rutas, plantillas e interacciones de base de datos."
+prompt = """
+Actúa como el @security-expert. Tu objetivo es realizar un análisis de seguridad rápida de la aplicación.
+
+Por favor, revisa detalladamente:
+- La lógica del servidor y rutas en: @{app.py}
+- Las plantillas HTML en: @{templates/}
+- El esquema de base de datos y consultas en: @{schema.sql}
+
+Busca vulnerabilidades críticas como inyección SQL, vulnerabilidades XSS, configuración inadecuada de cookies o CSRF, y exposición de credenciales, siguiendo las directrices descritas en `docs/SECURITY.md` y utilizando la skill `security-auditor`.
+
+Si proporcionaste argumentos adicionales, enfoca el análisis en esos aspectos: {{args}}
+"""

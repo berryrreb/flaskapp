@@ -1,0 +1,11 @@
+# .gemini/commands/flow.toml
+description = "Genera un diagrama explicativo en formato Mermaid.js a partir del código o un flujo específico."
+prompt = """
+Utiliza la skill `mermaid-diagrammer` para diseñar y renderizar un diagrama en formato Mermaid.js basado en las instrucciones del usuario o el código de la aplicación.
+
+Si el usuario solicita diagramar una ruta de Flask o un flujo de datos específico de la aplicación:
+1. Analiza el código de la ruta correspondiente en @{app.py}.
+2. Crea el diagrama Mermaid.js correspondiente (por ejemplo, `sequenceDiagram` o `flowchart LR`) que explique de forma visual y clara los pasos de la ejecución.
+
+Instrucciones adicionales o flujo a diagramar: {{args}}
+"""

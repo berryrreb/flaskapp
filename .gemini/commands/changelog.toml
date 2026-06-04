@@ -1,0 +1,13 @@
+# .gemini/commands/changelog.toml
+description = "Analiza los commits recientes y genera notas de versión estructuradas para el CHANGELOG.md."
+prompt = """
+Utiliza la skill `changelog-gen` para procesar el historial de versiones del proyecto.
+
+Analizaremos los últimos commits realizados en el repositorio de Git:
+!{git log -n 10 --oneline}
+
+Instrucciones:
+1. Estructura y formatea las notas de cambio de acuerdo al estándar "Keep a Changelog" (Added, Changed, Fixed, Security) descrito en `docs/BACKEND.md`.
+2. Incluye y prioriza las notas o comentarios adicionales proporcionados: {{args}}
+3. Si el archivo CHANGELOG.md ya existe, propón la adición de la nueva sección correspondiente en la parte superior.
+"""

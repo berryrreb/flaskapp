@@ -1,0 +1,12 @@
+# .gemini/commands/test.toml
+description = "Ejecuta el conjunto de pruebas unitarias de Flask y analiza cualquier fallo."
+prompt = """
+Ejecuta el conjunto de pruebas unitarias del proyecto utilizando el comando de bash:
+!{python3 -m unittest discover tests}
+
+Si la salida de las pruebas indica un fallo (FAIL) o error:
+1. Analiza detenidamente el traceback y los errores reportados.
+2. Identifica cuáles archivos del código fuente o de pruebas causaron el fallo.
+3. Propón una solución correctiva e idiomática basada en las mejores prácticas de Flask descritas en `docs/BACKEND.md`.
+4. Si pasaste argumentos adicionales, utilízalos para enfocar la depuración: {{args}}
+"""
