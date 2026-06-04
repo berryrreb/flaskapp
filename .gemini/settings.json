@@ -1,1 +1,21 @@
-{}
+{
+  "general": {
+    "previewFeatures": true
+  },
+  "agents": {
+    "overrides": {
+      "browser_agent": {
+        "enabled": true
+      }
+    },
+    "browser": {
+      "visualModel": "gemini-2.5-computer-use-preview-10-2025",
+      "allowedDomains": [
+        "github.com",
+        "*.google.com",
+        "localhost",
+        "*.run.app"
+      ]
+    }
+  }
+}
