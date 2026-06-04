@@ -53,22 +53,54 @@
         <div class="content-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1>{{ prompt.title }}</h1>
-                <span class="category-tag" style="font-size: 1rem; padding: 8px 16px;">{{ prompt.category }}</span>
+                <span class="category-tag" style="font-size: 1rem; padding: 8px 16px;">{{ prompt.category or 'Sin Categoría' }}</span>
             </div>
             
-            <div class="prompt-card" style="width: 100%; margin-bottom: 30px;">
-                <div class="prompt-content">
-                    {{ prompt.content }}
-                </div>
-            </div>
+            <div class="detail-layout">
+                <!-- Columna Izquierda: Prompt Original y Acciones -->
+                <div>
+                    <div class="prompt-card" style="width: 100%; margin-bottom: 30px; box-sizing: border-box;">
+                        <div class="prompt-content-raw" id="raw-prompt-content" style="display: none;">{{ prompt.content }}</div>
+                        <div class="prompt-content" style="white-space: pre-wrap; font-family: inherit;">{{ prompt.content }}</div>
+                    </div>
 
-            <div class="actions">
-                <a href="{{ url_for('edit_prompt', prompt_id=prompt.id) }}" class="button edit" style="font-size: 1rem; margin-right: 20px;">
-                    <i class="far fa-edit"></i> Edit Prompt
-                </a>
-                <a href="{{ url_for('index') }}" class="button edit" style="color: var(--text-muted);">
-                    <i class="fas fa-arrow-left"></i> Back to Home
-                </a>
+                    <div class="actions" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+                        <button class="button copy-btn" style="font-size: 1rem; padding: 12px 20px;" onclick="copyOriginalPrompt(this)">
+                            <i class="far fa-copy"></i> Copiar Prompt Original
+                        </button>
+                        <a href="{{ url_for('edit_prompt', prompt_id=prompt.id) }}" class="button edit" style="font-size: 1rem;">
+                            <i class="far fa-edit"></i> Edit Prompt
+                        </a>
+                        <a href="{{ url_for('index') }}" class="button edit" style="color: var(--text-muted);">
+                            <i class="fas fa-arrow-left"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Generador Inteligente de Plantillas -->
+                <div class="variables-panel" id="variables-panel" style="display: none;">
+                    <h3><i class="fas fa-magic"></i> Rellenar Plantilla</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                        Hemos detectado variables en este prompt. Rellena los campos para personalizarlo en vivo.
+                    </p>
+                    
+                    <div class="variables-group" id="variables-inputs">
+                        <!-- Generado Dinámicamente con JS -->
+                    </div>
+                    
+                    <div class="preview-container">
+                        <div class="preview-title">
+                            <span>PREVISUALIZACIÓN EN VIVO</span>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: var(--accent-primary);">[TERMINAL]</span>
+                        </div>
+                        <div class="terminal-preview" id="terminal-preview">
+                            <!-- Previsualización en vivo con marcas -->
+                        </div>
+                        <button class="button copy-btn" id="copy-compiled-btn" style="width: 100%; margin-top: 20px; justify-content: center; font-size: 1rem; padding: 12px;" onclick="copyCompiledPrompt(this)">
+                            <i class="far fa-copy"></i> Copiar Prompt Personalizado
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -84,6 +116,187 @@
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
             icon.classList.replace(isLight ? 'fa-moon' : 'fa-sun', isLight ? 'fa-sun' : 'fa-moon');
         });
+
+        // Utilidades para HTML Escape
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function robustCopyToClipboard(text, button, successText) {
+            const proceedWithSuccess = () => {
+                // Si ya está en estado copiado, evitar duplicar el timeout
+                if (button.classList.contains('copied')) return;
+                
+                button.classList.add('copied');
+                const iconElement = button.querySelector('i');
+                const originalIconClass = iconElement ? iconElement.className : 'far fa-copy';
+                if (iconElement) {
+                    iconElement.className = 'fas fa-check';
+                }
+                
+                const textNode = button.childNodes[button.childNodes.length - 1];
+                let originalText = '';
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                    originalText = textNode.textContent;
+                    textNode.textContent = ' ' + successText;
+                } else {
+                    originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> ' + successText;
+                }
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    if (iconElement) {
+                        iconElement.className = originalIconClass;
+                    }
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        textNode.textContent = originalText;
+                    } else {
+                        button.innerHTML = originalText;
+                    }
+                }, 2000);
+            };
+
+            // Ejecutar retroalimentación visual de forma optimista (snappy UI)
+            proceedWithSuccess();
+
+            // Ejecutar guardado en portapapeles en segundo plano de forma silenciosa
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).catch(() => {
+                    fallbackCopySilent(text);
+                });
+            } else {
+                fallbackCopySilent(text);
+            }
+        }
+
+        function fallbackCopySilent(text) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            } catch (err) {
+                console.warn('Copiado no soportado en este entorno:', err);
+            }
+        }
+
+        // Lógica de Copiado de Prompt Original
+        function copyOriginalPrompt(button) {
+            const text = document.getElementById('raw-prompt-content').textContent;
+            robustCopyToClipboard(text, button, 'Copiado!');
+        }
+
+        // Parseo de Variables e Interactividad
+        let allVars = [];
+        let contentText = "";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            contentText = document.getElementById('raw-prompt-content').textContent;
+            
+            // Regexes para {{variable}} y [variable]
+            const regexDoubleCurly = /\{\{\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ_ ]+?)\s*\}\}/g;
+            const regexBracket = /\[\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ_ ]{2,30}?)\s*\]/g;
+            
+            const varsDoubleCurly = [...contentText.matchAll(regexDoubleCurly)].map(m => ({
+                full: m[0],
+                name: m[1].trim()
+            }));
+            
+            const varsBracket = [...contentText.matchAll(regexBracket)].map(m => ({
+                full: m[0],
+                name: m[1].trim()
+            }));
+            
+            allVars = [...varsDoubleCurly, ...varsBracket];
+            
+            if (allVars.length > 0) {
+                // Mostrar panel
+                document.getElementById('variables-panel').style.display = 'block';
+                
+                // Obtener nombres únicos de variables
+                const uniqueVarNames = [...new Set(allVars.map(v => v.name))];
+                const inputsContainer = document.getElementById('variables-inputs');
+                
+                // Generar inputs dinámicos
+                uniqueVarNames.forEach(varName => {
+                    const field = document.createElement('div');
+                    field.className = 'var-field';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = varName.charAt(0).toUpperCase() + varName.slice(1);
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = `Escribe un valor para "${varName}"...`;
+                    input.dataset.varName = varName;
+                    input.addEventListener('input', updatePreview);
+                    
+                    field.appendChild(label);
+                    field.appendChild(input);
+                    inputsContainer.appendChild(field);
+                });
+                
+                // Inicializar previsualización
+                updatePreview();
+            }
+        });
+
+        // Actualizar previsualización en vivo con colores de terminal
+        function updatePreview() {
+            const values = {};
+            document.querySelectorAll('#variables-inputs input').forEach(input => {
+                values[input.dataset.varName] = input.value;
+            });
+            
+            let previewHtml = escapeHtml(contentText);
+            
+            // Reemplazar marcadores en el HTML de previsualización
+            allVars.forEach(v => {
+                const userVal = values[v.name];
+                const escapedFull = escapeHtml(v.full);
+                if (userVal) {
+                    previewHtml = previewHtml.split(escapedFull).join(`<mark class="highlighted">${escapeHtml(userVal)}</mark>`);
+                } else {
+                    previewHtml = previewHtml.split(escapedFull).join(`<mark>${escapeHtml(v.full)}</mark>`);
+                }
+            });
+            
+            document.getElementById('terminal-preview').innerHTML = previewHtml;
+        }
+
+        // Copiar Prompt Compilado (con variables rellenas)
+        function copyCompiledPrompt(button) {
+            let compiledText = contentText;
+            
+            const values = {};
+            document.querySelectorAll('#variables-inputs input').forEach(input => {
+                values[input.dataset.varName] = input.value;
+            });
+            
+            allVars.forEach(v => {
+                const userVal = values[v.name];
+                if (userVal) {
+                    compiledText = compiledText.split(v.full).join(userVal);
+                }
+            });
+            
+            robustCopyToClipboard(compiledText, button, 'Copiado!');
+        }
     </script>
 </body>
 </html>

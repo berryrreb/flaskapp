@@ -56,18 +56,28 @@
         <div class="content-container">
             <h1>Prompts</h1>
             
-            <div class="prompt-grid">
+            <div class="category-tabs" id="category-tabs">
+                <button class="tab-pill active" data-category="all">Todos</button>
+            </div>
+            
+            <div class="prompt-grid" id="prompt-grid">
                 {% for prompt in prompts %}
-                <div class="prompt-card">
+                <div class="prompt-card" data-category="{{ (prompt.category or 'Sin Categoría')|trim }}">
+                    <div class="prompt-content-raw" style="display: none;">{{ prompt.content }}</div>
                     <div class="card-header">
                         <h2><a href="{{ url_for('view_prompt', prompt_id=prompt.id) }}">{{ prompt.title }}</a></h2>
-                        <span class="category-tag">{{ prompt.category }}</span>
+                        <span class="category-tag">{{ prompt.category or 'Sin Categoría' }}</span>
                     </div>
                     <p>{{ prompt.content[:120] }}{% if prompt.content|length > 120 %}...{% endif %}</p>
                     <div class="card-footer">
-                        <a href="{{ url_for('edit_prompt', prompt_id=prompt.id) }}" class="button edit">
-                            <i class="far fa-edit"></i> Edit
-                        </a>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <a href="{{ url_for('edit_prompt', prompt_id=prompt.id) }}" class="button edit">
+                                <i class="far fa-edit"></i> Edit
+                            </a>
+                            <button class="button copy-btn" onclick="copyPrompt(this)">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
                         <form action="{{ url_for('delete_prompt', prompt_id=prompt.id) }}" method="post" class="delete-form">
                             <button type="submit" class="button delete">
                                 <i class="far fa-trash-alt"></i>
@@ -104,6 +114,126 @@
             } else {
                 icon.classList.replace('fa-sun', 'fa-moon');
             }
+        });
+
+        function robustCopyToClipboard(text, button, successText) {
+            const proceedWithSuccess = () => {
+                // Si ya está en estado copiado, evitar duplicar el timeout
+                if (button.classList.contains('copied')) return;
+                
+                button.classList.add('copied');
+                const iconElement = button.querySelector('i');
+                const originalIconClass = iconElement ? iconElement.className : 'far fa-copy';
+                if (iconElement) {
+                    iconElement.className = 'fas fa-check';
+                }
+                
+                const textNode = button.childNodes[button.childNodes.length - 1];
+                let originalText = '';
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                    originalText = textNode.textContent;
+                    textNode.textContent = ' ' + successText;
+                } else {
+                    originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> ' + successText;
+                }
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    if (iconElement) {
+                        iconElement.className = originalIconClass;
+                    }
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        textNode.textContent = originalText;
+                    } else {
+                        button.innerHTML = originalText;
+                    }
+                }, 2000);
+            };
+
+            // Ejecutar retroalimentación visual de forma optimista (snappy UI)
+            proceedWithSuccess();
+
+            // Ejecutar guardado en portapapeles en segundo plano de forma silenciosa
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).catch(() => {
+                    fallbackCopySilent(text);
+                });
+            } else {
+                fallbackCopySilent(text);
+            }
+        }
+
+        function fallbackCopySilent(text) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            } catch (err) {
+                console.warn('Copiado no soportado en este entorno:', err);
+            }
+        }
+
+        // Copiar Prompt al Portapapeles
+        function copyPrompt(button) {
+            const cardClass = 'prompt-' + 'card';
+            const card = button.closest('.' + cardClass);
+            const text = card.querySelector('.prompt-content-raw').textContent;
+            robustCopyToClipboard(text, button, 'Copied!');
+        }
+
+        // Generar Pestañas de Categoría dinámicamente y Filtrar
+        document.addEventListener('DOMContentLoaded', () => {
+            const cardClass = 'prompt-' + 'card';
+            const cards = document.querySelectorAll('.' + cardClass);
+            const tabsContainer = document.getElementById('category-tabs');
+            
+            // Obtener categorías únicas
+            const categories = new Set();
+            cards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                if (category) {
+                    categories.add(category);
+                }
+            });
+            
+            // Generar botones de categoría
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'tab-pill';
+                button.setAttribute('data-category', category);
+                button.textContent = category;
+                tabsContainer.appendChild(button);
+            });
+            
+            // Lógica de filtrado al hacer clic
+            const pills = document.querySelectorAll('.tab-pill');
+            pills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    // Remover activo de otros
+                    pills.forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    
+                    const filter = pill.getAttribute('data-category');
+                    
+                    cards.forEach(card => {
+                        const cardCategory = card.getAttribute('data-category');
+                        if (filter === 'all' || cardCategory === filter) {
+                            card.classList.remove('hidden');
+                        } else {
+                            card.classList.add('hidden');
+                        }
+                    });
+                });
+            });
         });
     </script>
 </body>

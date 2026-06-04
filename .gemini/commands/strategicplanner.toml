@@ -1,4 +1,4 @@
-# ~/.gemini/commands/plan.toml
+# ~/.gemini/commands/strategicplanner.toml
 
 description = "Investiga y crea un plan estratégico para completar una tarea."
 prompt = """
