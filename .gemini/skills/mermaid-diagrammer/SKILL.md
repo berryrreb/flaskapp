@@ -1,11 +1,11 @@
 ---
 name: mermaid-diagrammer
-description: Guía experta de sintaxis Mermaid.js para crear diagramas de flujo, secuencia y ERDs legibles en Markdown.
+description: Guía experta de sintaxis Mermaid para crear diagramas de flujo, secuencia y ERDs legibles en Markdown.
 ---
 
-# Skill: Diagramación Técnica con Mermaid.js (mermaid-diagrammer)
+# Skill: Diagramación Técnica con Mermaid (mermaid-diagrammer)
 
-Esta habilidad dota de conocimiento técnico exhaustivo sobre la sintaxis de **Mermaid.js** para diagramar flujos de sistema y presentarlos de forma interactiva en archivos Markdown.
+Esta habilidad dota de conocimiento técnico exhaustivo sobre la sintaxis de **Mermaid** para diagramar flujos de sistema y presentarlos de forma interactiva en archivos Markdown.
 
 ## 📝 Directrices:
 
